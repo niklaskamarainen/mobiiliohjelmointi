@@ -25,9 +25,16 @@ import com.example.week1.domain.addTask
 import com.example.week1.domain.mockTasks
 import java.time.LocalDate
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.example.week1.domain.filterByDone
+import com.example.week1.domain.sortByDueDate
+import com.example.week1.domain.toggleDone
 
 
 
@@ -37,17 +44,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Week1Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen()
-                }
+                HomeScreen()
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(){
-    var taskList by remember { mutableStateOf(mockTasks) }
+fun HomeScreen() {
+    var allTasks by remember { mutableStateOf(mockTasks) }
+    var visibleTasks by remember { mutableStateOf(mockTasks) }
+    var newTaskTitle by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -56,49 +63,88 @@ fun HomeScreen(){
     ) {
         Text(
             text = "Tehtävät",
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(vertical = 16.dp),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 40.sp
         )
 
-        taskList.forEach { task ->
+
+        visibleTasks.forEach { task ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
-            ){
-                Text(text = task.title)
+            ) {
+                Text(
+                    text = "${task.title} (${if (task.done) "done" else "todo"})"
+                )
+
+                Button( onClick = {
+                    allTasks = toggleDone(allTasks, task.id)
+                    visibleTasks = allTasks
+                }) {
+                    Text("Toggle done/todo")
+                }
             }
         }
-    }
 
-    Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-    Button(onClick = {
-        val newTask = Task(
-            id = taskList.size + 1,
-            title = "New Task",
-            description = "Added from button",
-            priority = 1,
-            dueDate = LocalDate.now(),
-            done = false
+        OutlinedTextField(
+            value = newTaskTitle,
+            onValueChange = {newTaskTitle = it},
+            label = {Text("Uuden tehtävän nimi")},
+            singleLine = true
         )
-        taskList = addTask(taskList, newTask)
-    }) {
-        Text("Add Task")
-    }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+        Row() {
+            Button(onClick = {
+                val newTask = Task(
+                    id = allTasks.size + 1,
+                    title = newTaskTitle,
+                    description = "Added from textField",
+                    priority = 1,
+                    dueDate = LocalDate.now(),
+                    done = false
+                )
+                allTasks = addTask(allTasks, newTask)
+                visibleTasks = allTasks
+                newTaskTitle = ""
+            }) {
+                Text("Add Task")
+            }
+
+            Button( onClick = {
+                visibleTasks = filterByDone(allTasks, done = true)
+            }) {
+                Text("Filter by done")
+            }
+
+            Button( onClick = {
+                visibleTasks = sortByDueDate(visibleTasks)
+            }) {
+                Text("Sort by date")
+            }
+        }
+
+        Button( onClick = {
+            visibleTasks = allTasks
+        }) {
+            Text("Clear filter")
+        }
+
+    }
 }
 
 @Preview(showBackground = true)
+
 @Composable
-fun GreetingPreview() {
+fun HomeScreenPreview() {
     Week1Theme {
-        Greeting("Android")
+        HomeScreen()
     }
 }
