@@ -22,4 +22,6 @@ fun sortByDueDate(list: List<Task>): List<Task> {
     return list.sortedBy { it.dueDate }
 }
 
-
+fun removeTask(list: List<Task>, id: Int): List<Task>{
+    return list.filter {it.id != id}
+}
