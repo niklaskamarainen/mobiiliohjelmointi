@@ -1,5 +1,6 @@
 package com.example.week1.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -25,19 +27,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.week1.domain.Task
-import com.example.week1.domain.TaskViewModel
-import com.example.week1.domain.mockTasks
+import com.example.week1.model.Task
+import com.example.week1.viewmodel.TaskViewModel
 import com.example.week1.ui.theme.Week1Theme
 import java.time.LocalDate
 import androidx.compose.foundation.lazy.items
-
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
 
 
 @Composable
 fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
 
     var newTaskTitle by remember { mutableStateOf("") }
+
+    val tasks by viewModel.tasks.collectAsState()
+    val selectedTask by viewModel.selectedTask.collectAsState()
 
     Column(
         modifier = Modifier
@@ -66,17 +72,22 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
                 label = {Text("Name of task")},
                 singleLine = true
             )
+            Spacer(modifier = Modifier.width(8.dp))
+
             Button(onClick = {
-                val newTask = Task(
-                    id = viewModel.tasks.size + 1,
-                    title = newTaskTitle,
-                    description = "Added from textField",
-                    priority = 1,
-                    dueDate = LocalDate.now(),
-                    done = false
-                )
-                viewModel.addTask(newTask)
-                newTaskTitle = ""
+                if(newTaskTitle.isNotBlank()) {
+                    viewModel.addTask(
+                        Task(
+                            id = tasks.size + 1,
+                            title = newTaskTitle,
+                            description = "Added from textField",
+                            priority = 1,
+                            dueDate = LocalDate.now(),
+                            done = false
+                        )
+                    )
+                    newTaskTitle = ""
+                }
             }) {
                 Text("Add Task")
             }
@@ -88,26 +99,42 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
-            items(viewModel.tasks) { task ->
-                Row(
+            items(tasks) { task ->
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
+                        .padding(4.dp)
+                        .clickable{viewModel.selectedTask(task)}
                 ) {
-                    Checkbox(
-                        checked = task.done,
-                        onCheckedChange = {
-                            viewModel.toggleDone(task.id)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Checkbox(
+                            checked = task.done,
+                            onCheckedChange = {
+                                viewModel.toggleDone(task.id)
+                            }
+                        )
+                        Column {
+                            Text(
+                                text = task.title,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Text(
+                                text = task.description
+                            )
                         }
-                    )
-                    Text(
-                        text = task.title,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Button(onClick = {
-                        viewModel.removeTask(task.id)
-                    }) {
-                        Text("Delete")
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Button(
+                            onClick = { viewModel.removeTask(task.id) },
+                            modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                            Text("Delete")
+                        }
                     }
                 }
             }
@@ -138,6 +165,15 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
             Text("Clear filter")
         }
 
+    }
+
+    if(selectedTask != null){
+        DetailDialog(
+            task = selectedTask!!,
+            onClose = {viewModel.closeDialog()},
+            onUpdate = {viewModel.updateTask(it)},
+            onDelete = {viewModel.removeTask(it)}
+        )
     }
 }
 
