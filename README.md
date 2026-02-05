@@ -30,3 +30,34 @@ Selitä MVVM, miksi se on hyödyllinen Compose-sovelluksissa.
 Kerro miten StateFlow toimii.
 
 - StateFlow pitää aina viimeisimmän arvon muistissa. Kun arvo muuttuu, kaikki sitä seuraavat näkymät päivittyvät automaattisesti.
+
+# week4
+Mitä tarkoittaa navigointi JetPack Composessa
+
+-Eri näkymien välillä siirrytään ilman perinteisiä activityjä
+
+Mitä ovat NavHost ja NavController
+
+-NavController vastaa: minne siirrytään ja milloin
+
+-NavHost määrittelee mitkä ruudut sovelluksessa on ja millä reiteillä niihin navigoidaan
+
+Miten sovelluksesi navigaatiorakenn on toteutettu
+
+-Sovelluksessa on kaksi päänäkymää: HomeScreen ja CalendarScreen. Navigointi toimii molempiin suuntiin, eli Home->Calendar tai Calendar->Home
+
+Miten MVVM ja navigointi yhdistyvät
+
+-Sama TaskViewModel jaetaan molemmille screeneille navigoinnin kautta
+
+Miten ViewModelin tila jaetaan kummankin ruudun välillä
+
+-ViewModel sisältää tehtävälistan ja molemmat screenit kuuntelevat samaa tilaa collectAsState() avulla. Kun tehtäviä lisätään tai muokataan, molemmat näkymät päivittyvät automaattisesti.
+
+Miten CalendarScreen on toteutettu
+
+-Tehtävät ryhmitellään dueDate mukaan. dueDate toimii otsikkona ja sen alla sen päivän tehtävät klikattavina kortteina.
+
+Miten alertDialog hoitaa addTask ja editTask
+
+-Käyttäjä syöttää haluamansa tiedot kenttiin ja painaa save. addTask kutsuu viewModelin addTask() ja editTask kutsuu viewModelin updateTask(). Delete kutsuu viewModelin removeTask().

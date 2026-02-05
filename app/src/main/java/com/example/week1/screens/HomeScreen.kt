@@ -32,63 +32,58 @@ import com.example.week1.viewmodel.TaskViewModel
 import com.example.week1.ui.theme.Week1Theme
 import java.time.LocalDate
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.materialIcon
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.collectAsState
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
+fun HomeScreen(
+    viewModel: TaskViewModel,
+    onTaskClick: (Int) -> Unit = {},
+    onAddClick: () -> Unit = {},
+    onNavigateCalendar: () -> Unit = {}
+    ) {
 
     var newTaskTitle by remember { mutableStateOf("") }
 
     val tasks by viewModel.tasks.collectAsState()
     val selectedTask by viewModel.selectedTask.collectAsState()
+    val addTaskFlag by viewModel.addTaskDialogVisible.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Tasks",
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(vertical = 16.dp),
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            fontSize = 40.sp
+        TopAppBar(
+            title={Text("Tasks")},
+            actions={
+                IconButton(onClick = onNavigateCalendar) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Go to calendar"
+                    )
+                }
+            }
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
 
         ) {
-            OutlinedTextField(
-                value = newTaskTitle,
-                onValueChange = {newTaskTitle = it},
-                label = {Text("Name of task")},
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = {
-                if(newTaskTitle.isNotBlank()) {
-                    viewModel.addTask(
-                        Task(
-                            id = tasks.size + 1,
-                            title = newTaskTitle,
-                            description = "Added from textField",
-                            priority = 1,
-                            dueDate = LocalDate.now(),
-                            done = false
-                        )
-                    )
-                    newTaskTitle = ""
-                }
-            }) {
+            Button(
+                onClick = onAddClick,
+                modifier = Modifier.padding(8.dp)
+            ) {
                 Text("Add Task")
             }
 
@@ -104,7 +99,7 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(4.dp)
-                        .clickable{viewModel.selectedTask(task)}
+                        .clickable{onTaskClick(task.id)}
                 ) {
                     Row(
                         modifier = Modifier
@@ -175,6 +170,13 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
             onDelete = {viewModel.removeTask(it)}
         )
     }
+
+    if(addTaskFlag){
+        AddDialog(
+            onClose = { viewModel.addTaskDialogVisible.value = false },
+            onAdd = { viewModel.addTask(it) }
+        )
+    }
 }
 
 @Preview(showBackground = true)
@@ -182,6 +184,6 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
 @Composable
 fun HomeScreenPreview() {
     Week1Theme {
-        HomeScreen()
+
     }
 }

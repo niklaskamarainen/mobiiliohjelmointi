@@ -27,6 +27,13 @@ class TaskViewModel : ViewModel() {
         _selectedTask.value = null
     }
 
+    val addTaskDialogVisible = MutableStateFlow<Boolean>(false)
+
+    fun openTask(id: Int){
+        val task = _tasks.value.find {it.id == id}
+        _selectedTask.value = task
+    }
+
     fun addTask(task: Task) {
         _allTasks.value += task
         _tasks.value = _allTasks.value
@@ -47,7 +54,7 @@ class TaskViewModel : ViewModel() {
 
 
     fun sortByDueDate(){
-        _tasks.value = _allTasks.value.sortedBy { it.dueDate }
+        _tasks.value = _allTasks.value.sortedBy { it.dueDate.ifBlank { "9999-12-31" } }
     }
 
     fun removeTask(id: Int){
